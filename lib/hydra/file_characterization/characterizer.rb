@@ -1,5 +1,6 @@
 require 'hydra/file_characterization/exceptions'
-require 'open3'
+#require 'open3'
+require 'posix-spawn'
 require 'active_support/core_ext/class/attribute'
 
 module Hydra::FileCharacterization
@@ -43,6 +44,7 @@ module Hydra::FileCharacterization
       end
 
       def internal_call
+=begin
         stdin, stdout, stderr, wait_thr = popen3(command)
         begin
           out = stdout.read
@@ -55,7 +57,17 @@ module Hydra::FileCharacterization
           stdout.close
           stderr.close
         end
-      end
+=end
+      stdout, stderr, status = execute_posix_spawn(*command)
+      raise "Unable to execute command \"#{command}\"\n#{stderr}" unless status.exitstatus.success?
+    end
+
+    def execute_posix_spawn(*command)
+      pid, stdin, stdout, stderr = POSIX::Spawn.popen4(*command)
+      Process.waitpid(pid)
+
+      [stdout.read, stderr.read, $?]
+    end
 
       def command
         raise NotImplementedError, "Method #command should be overriden in child classes"
