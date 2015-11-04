@@ -59,7 +59,7 @@ module Hydra::FileCharacterization
         end
 =end
       stdout, stderr, status = execute_posix_spawn(*command)
-      raise "Unable to execute command \"#{command}\"\n#{stderr}" unless status.exitstatus.success?
+      raise "Unable to execute command \"#{command}\"\n#{stderr}" unless status.exitstatus == 0 or status.exitstatus.success?
     end
 
     def execute_posix_spawn(*command)
